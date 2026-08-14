@@ -1,0 +1,31 @@
+.ai-card {
+  margin-bottom: 16px;
+  padding: 13px;
+  border: 1px solid #cdd8fb;
+  border-radius: 10px;
+  background: linear-gradient(145deg, #f7f9ff, #eef3ff);
+}
+
+.ai-card > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 9px;
+}
+
+.ai-card b { color: #263f94; font-size: 11px; }
+.ai-card small { color: var(--muted); font-size: 9px; }
+.ai-card textarea { min-height: 62px; margin: 0 0 9px; }
+.ai-card .form-row { margin-bottom: 9px; }
+.ai-card > .button + .button { margin-top: 7px; }
+.ai-result { display: block; margin-top: 7px; color: #4964bc !important; }
+.vision-input { display: flex; align-items: center; gap: 7px; margin: 0 0 9px; }
+.vision-input span { flex: 1; min-width: 0; overflow: hidden; color: var(--muted); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.vision-input .button { min-height: 27px; padding: 5px 8px; font-size: 9px; }
+.ai-confirmations { margin-top: 8px; padding: 8px; border: 1px solid #e8b566; border-radius: 7px; background: #fff8e8; color: #774b05; font-size: 9px; line-height: 1.55; }
+.button:disabled { cursor: wait; opacity: 0.6; }
+
+.fidelity-stage { display: block; background: #dfe4ec; }
+.grhtml5-holder { min-height: 100%; padding: 24px; background: #fff; box-shadow: 0 6px 28px #24314d2b; }
+.fidelity-error { margin: 32px; padding: 16px; border: 1px solid #f0c6c6; border-radius: 8px; background: #fff4f4; color: #9a3131; font-size: 12px; }
+.tabular-file { display: inline-flex; justify-content: center; margin-bottom: 8px; }

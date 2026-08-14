@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>templateGenerator</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./ai.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-mark">TG</span><div><b>templateGenerator</b><small>Grid++ Template Studio · 6.8</small></div></div>
+      <nav>
+        <button class="nav-item active" data-view="designer"><span>⌁</span>模板设计</button>
+        <button class="nav-item" data-view="templates"><span>▤</span>模板库</button>
+        <button class="nav-item" data-view="datasources"><span>◉</span>数据源</button>
+        <button class="nav-item" data-view="batch"><span>⊞</span>批量生成</button>
+      </nav>
+      <div class="side-note"><span class="status-dot"></span><div><b>本地试用模式</b><small>数据保存在本机 SQLite</small></div></div>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <div><h1 id="pageTitle">模板设计</h1><p id="pageSubtitle">配置字段与版式，实时预览并生成原生 GRF</p></div>
+        <div class="toolbar">
+          <label class="button ghost file-button">导入 .grf<input id="grfImport" type="file" accept=".grf,application/json" hidden /></label>
+          <button id="newTemplate" class="button ghost">新建</button>
+          <button id="saveTemplate" class="button secondary">保存版本</button>
+          <button id="copyGrf" class="button primary">复制 GRF</button>
+          <button id="downloadGrf" class="button primary icon-only" title="下载 GRF">↓</button>
+        </div>
+      </header>
+
+      <section id="designerView" class="view active">
+        <div class="designer-grid">
+          <section class="panel config-panel">
+            <div class="tabs"><button class="tab active" data-tab="basic">基础</button><button class="tab" data-tab="fields">字段</button><button class="tab" data-tab="paper">纸张</button><button class="tab" data-tab="style">样式</button><button class="tab" data-tab="source">数据</button></div>
+            <div class="tab-page active" data-page="basic">
+              <div class="section-title"><span>01</span><div><b>模板信息</b><small>用于管理和报表顶部展示</small></div></div>
+              <div class="ai-card">
+                <div><b>自然语言生成</b><small>AI 只生成受约束的 ReportIR，由本地编译器输出 GRF</small></div>
+                <textarea id="aiPrompt" class="short" placeholder="例如：生成横向入库单，字段包括物料编码、名称、数量和入库日期"></textarea>
+                <div class="vision-input"><label class="button ghost file-button">上传报表图片<input id="aiImage" type="file" accept="image/png,image/jpeg,image/webp" hidden /></label><span id="aiImageName">可选，PNG / JPEG / WebP，最大 8MB</span><button id="aiImageClear" type="button" class="button ghost hidden">移除</button></div>
+                <div class="form-row"><label>模型服务<select id="aiProvider"><option value="deepseek">DeepSeek</option><option value="mock">本地 Mock（离线）</option><option value="openai">OpenAI</option><option value="claude">Claude</option><option value="qwen">Qwen</option><option value="kimi">Kimi</option><option value="glm">GLM</option><option value="gemini">Gemini</option><option value="grok">Grok</option></select></label><label>模型（可选）<input id="aiModel" placeholder="使用后端默认配置" /></label></div>
+                <button id="aiGenerate" class="button primary full" type="button">生成 ReportIR 与模板</button>
+                <button id="aiRevise" class="button secondary full" type="button">在当前模板上迭代修改</button>
+                <small id="aiResult" class="ai-result"></small>
+                <div id="aiConfirmations" class="ai-confirmations hidden"></div>
+              </div>
+              <label>模板名称<input id="templateName" value="通用业务报表" /></label>
+              <label>报表标题<input id="reportTitle" value="业务明细表" /></label>
+              <div class="form-row"><label>模板分类<select id="categorySelect"></select></label><label>数据源<select id="dataSourceSelect"><option value="">临时数据</option></select></label></div>
+              <label>版本说明<input id="versionNote" placeholder="例如：调整列宽和标题" /></label>
+              <div class="info-card"><b>生成模式</b><span id="modeBadge" class="badge">从零生成</span><p id="modeHelp">生成标准明细表结构，可直接在 Grid++Report 6.8 中打开。</p></div>
+            </div>
+            <div class="tab-page" data-page="fields">
+              <div class="section-title"><span>02</span><div><b>明细字段</b><small>拖动排序，配置标题、类型与宽度</small></div></div>
+              <div id="fieldList" class="field-list"></div>
+              <button id="addField" class="button dashed">＋ 添加字段</button>
+              <button id="inferFields" class="button ghost full">从示例 JSON 识别字段</button>
+            </div>
+            <div class="tab-page" data-page="paper">
+              <div class="section-title"><span>03</span><div><b>页面设置</b><small>尺寸单位为厘米</small></div></div>
+              <div class="form-row"><label>纸张<select id="paperSize"><option>A4</option><option>A5</option><option>Letter</option><option>Custom</option></select></label><label>方向<select id="orientation"><option value="landscape">横向</option><option value="portrait">纵向</option></select></label></div>
+              <div id="customPaper" class="form-row hidden"><label>宽度<input id="paperWidth" type="number" value="21" step="0.1" /></label><label>高度<input id="paperHeight" type="number" value="29.7" step="0.1" /></label></div>
+              <div class="subheading">页边距</div>
+              <div class="form-grid-4"><label>左<input id="marginLeft" type="number" value="1.2" step="0.1" /></label><label>上<input id="marginTop" type="number" value="1.2" step="0.1" /></label><label>右<input id="marginRight" type="number" value="1.2" step="0.1" /></label><label>下<input id="marginBottom" type="number" value="1.2" step="0.1" /></label></div>
+            </div>
+            <div class="tab-page" data-page="style">
+              <div class="section-title"><span>04</span><div><b>视觉样式</b><small>网页预览与 GRF 同步生成</small></div></div>
+              <div class="form-row"><label>字体<select id="fontFamily"><option>宋体</option><option>微软雅黑</option><option>黑体</option><option>Arial</option></select></label><label>表头底色<input id="headerBackground" type="color" value="#eef2f7" /></label></div>
+              <div class="form-grid-4"><label>标题字号<input id="titleSize" type="number" value="18" /></label><label>表头字号<input id="headerSize" type="number" value="9" /></label><label>正文字号<input id="bodySize" type="number" value="9" /></label><label>行高 cm<input id="rowHeight" type="number" value="0.78" step="0.05" /></label></div>
+              <div class="form-row"><label>边框<select id="borderStyle"><option value="grid">完整网格</option><option value="horizontal">仅横线</option></select></label><label>线宽<input id="borderWidth" type="number" value="0.5" step="0.25" /></label></div>
+              <label class="check"><input id="zebra" type="checkbox" /> 网页预览使用斑马纹</label>
+            </div>
+            <div class="tab-page" data-page="source">
+              <div class="section-title"><span>05</span><div><b>示例数据</b><small>用于字段识别和网页预览</small></div></div>
+              <label class="button ghost tabular-file">导入 CSV / TSV / XLSX<input id="tabularImport" type="file" accept=".csv,.tsv,.xlsx,text/csv,text/tab-separated-values,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden /></label>
+              <p class="hint">自动读取首行为字段名并探测数据类型；Excel 读取首个工作表。文件上限 5MB，预览最多 100 行。</p>
+              <label>JSON 数组<textarea id="sampleJson" spellcheck="false">[
+  {"序号": 1, "产品编码": "P-1001", "品名": "航空密封件", "数量": 12, "单位": "件"},
+  {"序号": 2, "产品编码": "P-1002", "品名": "耐高温胶带", "数量": 8, "单位": "卷"},
+  {"序号": 3, "产品编码": "P-1003", "品名": "清洗剂", "数量": 24, "单位": "瓶"}
+]</textarea></label>
+              <label>查询 SQL（可选）<textarea id="querySql" class="short" spellcheck="false" placeholder="SELECT ..."></textarea></label>
+              <button id="queryDataSource" class="button secondary full" type="button">从已选数据库查询并填充预览</button>
+            </div>
+          </section>
+
+          <section class="preview-area">
+            <div class="preview-toolbar"><div class="segmented"><button class="active" data-preview="visual">近似预览</button><button data-preview="fidelity">高保真预览</button><button data-preview="code">GRF 内容</button></div><div class="zoom"><button id="zoomOut">−</button><span id="zoomValue">85%</span><button id="zoomIn">＋</button></div></div>
+            <div id="visualPreview" class="preview-stage"><div id="paper" class="paper"></div></div>
+            <div id="fidelityPreview" class="preview-stage fidelity-stage hidden"><div id="grhtml5Holder" class="grhtml5-holder"></div></div>
+            <div id="codePreview" class="code-stage hidden"><pre id="grfCode"></pre></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="templatesView" class="view library-view">
+        <div class="view-heading"><div><h2>模板库</h2><p>按分类查找模板，查看历史版本并继续编辑</p></div><button class="button primary" data-go-designer>＋ 新建模板</button></div>
+        <div id="templateCards" class="card-grid"></div>
+      </section>
+
+      <section id="datasourcesView" class="view library-view">
+        <div class="view-heading"><div><h2>数据源</h2><p>保存 JSON 示例数据，自动识别字段并复用于模板</p></div><button id="newDataSource" class="button primary">＋ 新建数据源</button></div>
+        <div id="dataSourceCards" class="card-grid"></div>
+      </section>
+
+      <section id="batchView" class="view library-view">
+        <div class="view-heading"><div><h2>批量生成</h2><p>使用当前模板配置，根据批量参数一次生成多个 GRF</p></div><button id="runBatch" class="button primary">开始生成</button></div>
+        <div class="batch-layout"><section class="panel"><label>批量配置 JSON<textarea id="batchJson" spellcheck="false">[
+  {"name": "华东区装箱单", "title": "华东区装箱明细"},
+  {"name": "华南区装箱单", "title": "华南区装箱明细"}
+]</textarea></label><p class="hint">每个对象会覆盖当前模板的同名配置；支持 name、title、paper、style 等。</p></section><section class="panel"><h3>生成结果</h3><div id="batchResults" class="result-list empty">尚未执行批量生成</div></section></div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="dataSourceDialog">
+    <form method="dialog" class="dialog-card"><div class="dialog-head"><div><h3>新建数据源</h3><p>支持 JSON、SQLite；MySQL 需后端启用受控驱动</p></div><button value="cancel" class="icon-close">×</button></div><label>名称<input id="dsName" value="示例数据源" /></label><label>类型<select id="dsKind"><option value="json">JSON</option><option value="sqlite">SQLite</option><option value="mysql">MySQL（受控开关）</option></select></label><div id="dsJsonFields"><label>JSON 内容<textarea id="dsContent" spellcheck="false">[{"字段A":"示例","数量":1}]</textarea></label></div><div id="dsSqliteFields" class="hidden"><label>SQLite 文件绝对路径<input id="dsSqliteFilename" placeholder="/data/report.db" /></label></div><div id="dsMysqlFields" class="hidden"><div class="form-row"><label>主机<input id="dsMysqlHost" /></label><label>端口<input id="dsMysqlPort" type="number" value="3306" /></label></div><div class="form-row"><label>用户<input id="dsMysqlUser" /></label><label>密码<input id="dsMysqlPassword" type="password" autocomplete="new-password" /></label></div><label>数据库<input id="dsMysqlDatabase" /></label></div><div class="dialog-actions"><button value="cancel" class="button ghost">取消</button><button id="saveDataSourceButton" value="default" class="button primary">探测并保存</button></div></form>
+  </dialog>
+  <div id="toast" class="toast"></div>
+  <script src="./vendor/grhtml5-6.8-min.js"></script>
+  <script src="./vendor/xlsx.mini.min.js"></script>
+  <script src="./site-core.js"></script>
+  <script src="./site-adapter.js"></script>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
